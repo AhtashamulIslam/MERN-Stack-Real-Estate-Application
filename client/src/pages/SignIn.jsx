@@ -1,13 +1,15 @@
 import {Link,useNavigate} from 'react-router-dom'
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { signInSuccess,signInStart,signInFailure } from '../redux/user/userSlice';
 
 function SignIn() {
   
   const [formData, setFormData] = useState({});
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(false);
-
+  const {loading,error} = useSelector(state=>state.user)
+  const dispatch = useDispatch();
   const navigate = useNavigate()
+  
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -17,7 +19,7 @@ function SignIn() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    dispatch(signInStart())
     try {
       const res = await fetch("/api/auth/signin", {
         method: "POST",
@@ -28,19 +30,18 @@ function SignIn() {
       });
       const data = await res.json();
       if (data.success === false) {
-        setError(data.message);
+        dispatch(signInFailure(data.message));
         return;
       }
       if(res.ok){
-        setError(null)
+        dispatch(signInSuccess(data))
         navigate('/')
       }
     } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
+     dispatch(signInFailure(error.message))
     }
   };
+
   return (
     <div className="flex flex-col px-8 sm:px-12 mt-10 max-w-5xl mx-auto md:flex-row md:p-3 md:items-center gap-10">
       <div className="flex-1">
